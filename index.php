@@ -16,7 +16,8 @@ class MyApplication implements HttpKernelInterface {
         }
 
         $params = $token->getExtraParams();
-        return new Response($request->attributes->get('mustache')->render('Hello, {{ name }}', ['name' => $params['screen_name']]));
+        $mustache = $request->attributes->get('mustache');
+        return $mustache->render('index.html', ['name' => $params['screen_name']]);
     }
 }
 
@@ -30,8 +31,14 @@ class Mustache implements HttpKernelInterface {
 
     public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
     {
-        $request->attributes->set('mustache', $this->engine);
+        $request->attributes->set('mustache', $this);
+        $request->attributes->set('mustache.engine', $this->engine);
         return $this->app->handle($request, $type, $catch);
+    }
+
+    public function render($template, $params)
+    {
+        return new Response($this->engine->render($template, $params));
     }
 }
 
@@ -46,6 +53,8 @@ $stack = (new Stack\Builder())
         'success_url' => '/',
         'failure_url' => '/auth',
     ])
-    ->push('Mustache');
+    ->push('Mustache', [
+        'loader' => new Mustache_Loader_FilesystemLoader(__DIR__ . '/views'),
+    ]);
 
 Stack\run($stack->resolve($app));
