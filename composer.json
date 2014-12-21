@@ -4,6 +4,7 @@
         "stack/callable-http-kernel": "~1.0",
         "stack/run": "~1.0",
         "igorw/stack-oauth": "dev-master",
-        "stack/session": "dev-master"
+        "stack/session": "dev-master",
+        "mustache/mustache": "~2.7"
     }
 }
