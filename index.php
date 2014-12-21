@@ -1,21 +1,24 @@
 <?php
 require "vendor/autoload.php";
 
-use Stack\CallableHttpKernel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
-$app = new CallableHttpKernel(function (Request $request) {
-    $token = $request->attributes->get('oauth.token');
-    if (!$token) {
-        return new RedirectResponse('/auth');
-    }
 
-    $params = $token->getExtraParams();
-    return new Response($request->attributes->get('mustache')->render('Hello, {{ name }}', ['name' => $params['screen_name']]));
-});
+class MyApplication implements HttpKernelInterface {
+    public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
+    {
+        $token = $request->attributes->get('oauth.token');
+        if (!$token) {
+            return new RedirectResponse('/auth');
+        }
+
+        $params = $token->getExtraParams();
+        return new Response($request->attributes->get('mustache')->render('Hello, {{ name }}', ['name' => $params['screen_name']]));
+    }
+}
 
 class Mustache implements HttpKernelInterface {
     private $app;
@@ -32,6 +35,7 @@ class Mustache implements HttpKernelInterface {
     }
 }
 
+$app = new MyApplication;
 
 $stack = (new Stack\Builder())
     ->push('Stack\\Session')
